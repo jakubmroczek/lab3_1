@@ -6,7 +6,6 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
-import pl.com.bottega.ecommerce.sales.domain.client.Client;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
@@ -95,4 +94,20 @@ public class BookKeeperTest {
         verify(taxPolicyStub, times(0)).calculateTax(any(), any());
     }
 
+    @Test
+    public void shouldInvoiceFactoryCreateOneInvoice() {
+        InvoiceRequest invoiceRequest = new InvoiceRequest(new ClientData(Id.generate(), "nowak"));
+        ProductData productData = mock(ProductData.class);
+
+        when(productData.getType()).thenReturn(ProductType.DRUG);
+        invoiceRequest.add(new RequestItem(productData, 10, new Money(100)));
+        invoiceRequest.add(new RequestItem(productData, 14, new Money(10)));
+
+        when(invoiceFactoryStub.create(any())).thenCallRealMethod();
+        when(taxPolicyStub.calculateTax(any(), any())).thenReturn(new Tax(Money.ZERO, "test"));
+
+        sut.issuance(invoiceRequest, taxPolicyStub);
+
+        verify(invoiceFactoryStub, times(1)).create(any());
+    }
 }
