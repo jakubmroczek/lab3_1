@@ -71,4 +71,17 @@ public class BookKeeperTest {
         assertEquals(Money.ZERO, result.getNet());
     }
 
+    @Test
+    public void shouldReturnProperClientData() {
+        ClientData expectedClientData = new ClientData(Id.generate(), "nowak");
+
+        InvoiceRequest invoiceRequest = new InvoiceRequest(expectedClientData);
+
+        when(invoiceFactoryStub.create(any())).thenCallRealMethod();
+        Invoice result = sut.issuance(invoiceRequest, taxPolicyStub);
+
+        assertEquals(expectedClientData.getAggregateId(), result.getClient().getAggregateId());
+        assertEquals(expectedClientData.getName(), result.getClient().getName());
+    }
+
 }
