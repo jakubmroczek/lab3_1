@@ -4,7 +4,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
+import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
+import pl.com.bottega.ecommerce.sales.domain.client.Client;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
@@ -55,6 +57,18 @@ public class BookKeeperTest {
         sut.issuance(invoiceRequest, taxPolicyStub);
 
         verify(taxPolicyStub, times(2)).calculateTax(any(), any());
+    }
+
+    @Test
+    public void shouldReturnEmptyInvoice() {
+        InvoiceRequest invoiceRequest = new InvoiceRequest(new ClientData(Id.generate(), "nowak"));
+
+        when(invoiceFactoryStub.create(any())).thenReturn(new Invoice(null, null));
+        Invoice result = sut.issuance(invoiceRequest, taxPolicyStub);
+
+        assertEquals(0, result.getItems().size());
+        assertEquals(Money.ZERO, result.getGros());
+        assertEquals(Money.ZERO, result.getNet());
     }
 
 }
