@@ -44,7 +44,16 @@ public class AddProductCommandHandler implements CommandHandler<AddProductComman
 	
 
 	private SystemContext systemContext;
-	
+
+	public AddProductCommandHandler(ReservationRepository reservationRepository, ProductRepository productRepository,
+			SuggestionService suggestionService, ClientRepository clientRepository, SystemContext systemContext) {
+		this.reservationRepository = reservationRepository;
+		this.productRepository = productRepository;
+		this.suggestionService = suggestionService;
+		this.clientRepository = clientRepository;
+		this.systemContext = systemContext;
+	}
+
 	@Override
 	public Void handle(AddProductCommand command) {
 		Reservation reservation = reservationRepository.load(command.getOrderId());
