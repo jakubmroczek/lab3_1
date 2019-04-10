@@ -84,4 +84,15 @@ public class BookKeeperTest {
         assertEquals(expectedClientData.getName(), result.getClient().getName());
     }
 
+    @Test
+    public void shouldNotCallTaxPolicyOnEmptyInvoiceRequest() {
+        InvoiceRequest invoiceRequest = new InvoiceRequest(new ClientData(Id.generate(), "nowak"));
+
+        when(invoiceFactoryStub.create(any())).thenCallRealMethod();
+
+        sut.issuance(invoiceRequest, taxPolicyStub);
+
+        verify(taxPolicyStub, times(0)).calculateTax(any(), any());
+    }
+
 }
