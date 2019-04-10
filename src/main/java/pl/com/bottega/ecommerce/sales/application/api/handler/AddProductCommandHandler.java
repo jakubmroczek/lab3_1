@@ -41,7 +41,6 @@ public class AddProductCommandHandler implements CommandHandler<AddProductComman
 	
 
 	private ClientRepository clientRepository;
-	
 
 	private SystemContext systemContext;
 
