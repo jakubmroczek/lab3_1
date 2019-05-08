@@ -17,6 +17,7 @@ import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductRepository;
 import pl.com.bottega.ecommerce.sales.domain.reservation.Reservation;
 import pl.com.bottega.ecommerce.sales.domain.reservation.ReservationRepository;
 import pl.com.bottega.ecommerce.system.application.SystemContext;
+import test.utils.AddProductCommandHandlerBuilder;
 
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.any;
@@ -50,7 +51,7 @@ public class AddProductCommandHandlerTest {
 
     @Before
     public void setUp() {
-        sut = new AddProductCommandHandler(reservationRepository,productRepository , suggestionService, clientRepository, systemContext);
+        sut = new AddProductCommandHandlerBuilder(reservationRepository,productRepository , suggestionService, clientRepository).withSystemContext(systemContext).build();
 
         when(productRepository.load(any())).thenReturn(product);
         when(product.isAvailable()).thenReturn(false);
