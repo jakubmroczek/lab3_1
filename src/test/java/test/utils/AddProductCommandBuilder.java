@@ -27,5 +27,4 @@ public class AddProductCommandBuilder {
     public AddProductCommand build() {
         return new AddProductCommand(orderId, productId, quantity);
     }
-
 }
