@@ -6,7 +6,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.application.api.command.AddProductCommand;
 import pl.com.bottega.ecommerce.sales.domain.client.Client;
@@ -14,8 +13,10 @@ import pl.com.bottega.ecommerce.sales.domain.client.ClientRepository;
 import pl.com.bottega.ecommerce.sales.domain.equivalent.SuggestionService;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductRepository;
+import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sales.domain.reservation.Reservation;
 import pl.com.bottega.ecommerce.sales.domain.reservation.ReservationRepository;
+import pl.com.bottega.ecommerce.sharedkernel.Money;
 import pl.com.bottega.ecommerce.system.application.SystemContext;
 import test.utils.AddProductCommandHandlerBuilder;
 
@@ -39,25 +40,27 @@ public class AddProductCommandHandlerTest {
     public ClientRepository clientRepository;
 
     @Mock
-    public SystemContext systemContext;
-
-    @Mock
     public Reservation reservation;
 
-    @Mock
-    public Product product;
+    private AddProductCommandHandler sut;
 
-    public AddProductCommandHandler sut;
+    private Product getProduct() {
+        Product result = new Product(Id.generate(), Money.ZERO, "Cudzesy", ProductType.STANDARD);
+        result.markAsRemoved();
+        return result;
+    }
+
+    private SystemContext getSystemContext() {
+        return new SystemContext();
+    }
 
     @Before
     public void setUp() {
-        sut = new AddProductCommandHandlerBuilder(reservationRepository,productRepository , suggestionService, clientRepository).withSystemContext(systemContext).build();
+        sut = new AddProductCommandHandlerBuilder(reservationRepository,productRepository , suggestionService, clientRepository).withSystemContext(getSystemContext()).build();
 
-        when(productRepository.load(any())).thenReturn(product);
-        when(product.isAvailable()).thenReturn(false);
+        when(productRepository.load(any())).thenReturn(getProduct());
         when(clientRepository.load(any())).thenReturn(new Client());
         when(reservationRepository.load(any())).thenReturn(reservation);
-        when(systemContext.getSystemUser()).thenCallRealMethod();
     }
 
     @Test
@@ -68,9 +71,9 @@ public class AddProductCommandHandlerTest {
 
         verify(reservationRepository).save(captor.capture());
 
-        final Reservation reservation = captor.getValue();
+        final Reservation response = captor.getValue();
 
-        assertFalse(reservation.contains(product));
+        assertFalse(response.contains(getProduct()));
     }
 
     @Test
