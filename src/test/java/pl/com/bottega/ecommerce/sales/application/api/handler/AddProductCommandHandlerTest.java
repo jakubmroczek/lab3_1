@@ -14,8 +14,10 @@ import pl.com.bottega.ecommerce.sales.domain.client.ClientRepository;
 import pl.com.bottega.ecommerce.sales.domain.equivalent.SuggestionService;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductRepository;
+import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sales.domain.reservation.Reservation;
 import pl.com.bottega.ecommerce.sales.domain.reservation.ReservationRepository;
+import pl.com.bottega.ecommerce.sharedkernel.Money;
 import pl.com.bottega.ecommerce.system.application.SystemContext;
 
 import static org.junit.Assert.assertFalse;
@@ -43,8 +45,11 @@ public class AddProductCommandHandlerTest {
     @Mock
     public Reservation reservation;
 
-    @Mock
-    public Product product;
+    public Product getProduct() {
+        Product result = new Product(Id.generate(), Money.ZERO, "Cudzesy", ProductType.STANDARD);
+        result.markAsRemoved();
+        return result;
+    }
 
     public AddProductCommandHandler sut;
 
@@ -52,8 +57,7 @@ public class AddProductCommandHandlerTest {
     public void setUp() {
         sut = new AddProductCommandHandler(reservationRepository,productRepository , suggestionService, clientRepository, systemContext);
 
-        when(productRepository.load(any())).thenReturn(product);
-        when(product.isAvailable()).thenReturn(false);
+        when(productRepository.load(any())).thenReturn(getProduct());
         when(clientRepository.load(any())).thenReturn(new Client());
         when(reservationRepository.load(any())).thenReturn(reservation);
         when(systemContext.getSystemUser()).thenCallRealMethod();
@@ -69,7 +73,7 @@ public class AddProductCommandHandlerTest {
 
         final Reservation reservation = captor.getValue();
 
-        assertFalse(reservation.contains(product));
+        assertFalse(reservation.contains(getProduct()));
     }
 
     @Test
