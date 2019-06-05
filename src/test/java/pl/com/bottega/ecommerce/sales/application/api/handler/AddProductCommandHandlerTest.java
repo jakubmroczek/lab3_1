@@ -6,7 +6,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.application.api.command.AddProductCommand;
 import pl.com.bottega.ecommerce.sales.domain.client.Client;
@@ -71,9 +70,9 @@ public class AddProductCommandHandlerTest {
 
         verify(reservationRepository).save(captor.capture());
 
-        final Reservation reservation = captor.getValue();
+        final Reservation response = captor.getValue();
 
-        assertFalse(reservation.contains(getProduct()));
+        assertFalse(response.contains(getProduct()));
     }
 
     @Test

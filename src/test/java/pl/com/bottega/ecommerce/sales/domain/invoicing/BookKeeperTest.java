@@ -3,13 +3,10 @@ package pl.com.bottega.ecommerce.sales.domain.invoicing;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
-import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
-import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 import java.util.Date;
@@ -47,22 +44,21 @@ public class BookKeeperTest {
         invoiceFactoryStub = mock(InvoiceFactory.class);
         taxPolicyStub = mock(TaxPolicy.class);
         sut = new BookKeeper(invoiceFactoryStub);
+
+        when(invoiceFactoryStub.create(any())).thenReturn(new Invoice(null, null));
+        when(taxPolicyStub.calculateTax(any(), any())).thenReturn(new Tax(Money.ZERO, "test"));
+        when(invoiceFactoryStub.create(any())).thenCallRealMethod();
     }
 
     @Test
     public void shouldReturnInvoiceWithSinglePosition() {
-        when(invoiceFactoryStub.create(any())).thenReturn(new Invoice(null, null));
-        when(taxPolicyStub.calculateTax(any(), any())).thenReturn(new Tax(new Money(1), null));
-
         Invoice result = sut.issuance(getInvoiceRequest(getProductData()), taxPolicyStub);
+
         assertEquals(1, result.getItems().size());
     }
 
     @Test
     public void shouldCalculateTaxBeCalledTwice() {
-        when(invoiceFactoryStub.create(any())).thenReturn(new Invoice(null, null));
-        when(taxPolicyStub.calculateTax(any(), any())).thenReturn(new Tax(new Money(1), null));
-
         sut.issuance(getInvoiceRequest(getProductData(), getProductData()), taxPolicyStub);
 
         verify(taxPolicyStub, times(2)).calculateTax(any(), any());
@@ -70,7 +66,6 @@ public class BookKeeperTest {
 
     @Test
     public void shouldReturnEmptyInvoice() {
-        when(invoiceFactoryStub.create(any())).thenReturn(new Invoice(null, null));
         Invoice result = sut.issuance(getInvoiceRequest(), taxPolicyStub);
 
         assertEquals(0, result.getItems().size());
@@ -84,7 +79,6 @@ public class BookKeeperTest {
 
         InvoiceRequest invoiceRequest = getInvoiceRequest(expectedClientData);
 
-        when(invoiceFactoryStub.create(any())).thenCallRealMethod();
         Invoice result = sut.issuance(invoiceRequest, taxPolicyStub);
 
         assertEquals(expectedClientData.getAggregateId(), result.getClient().getAggregateId());
@@ -93,8 +87,6 @@ public class BookKeeperTest {
 
     @Test
     public void shouldNotCallTaxPolicyOnEmptyInvoiceRequest() {
-        when(invoiceFactoryStub.create(any())).thenCallRealMethod();
-
         sut.issuance(getInvoiceRequest(), taxPolicyStub);
 
         verify(taxPolicyStub, times(0)).calculateTax(any(), any());
@@ -103,9 +95,6 @@ public class BookKeeperTest {
     @Test
     public void shouldInvoiceFactoryCreateOneInvoice() {
         InvoiceRequest invoiceRequest = getInvoiceRequest(getProductData(), getProductData());
-
-        when(invoiceFactoryStub.create(any())).thenCallRealMethod();
-        when(taxPolicyStub.calculateTax(any(), any())).thenReturn(new Tax(Money.ZERO, "test"));
 
         sut.issuance(invoiceRequest, taxPolicyStub);
 
