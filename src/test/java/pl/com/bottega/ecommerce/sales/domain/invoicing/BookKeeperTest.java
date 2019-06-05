@@ -3,9 +3,11 @@ package pl.com.bottega.ecommerce.sales.domain.invoicing;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
+import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
@@ -24,6 +26,18 @@ public class BookKeeperTest {
     private TaxPolicy taxPolicyStub;
     private BookKeeper sut;
 
+    private InvoiceRequest getInvoiceRequest(ClientData clientData, ProductData... data) {
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        for(ProductData productData : data) {
+            invoiceRequest.add(new RequestItem(productData, 1, Money.ZERO));
+        }
+        return invoiceRequest;
+    }
+
+    private InvoiceRequest getInvoiceRequest(ProductData... data) {
+        return getInvoiceRequest(null, data);
+    }
+
     private ProductData getProductData() {
         return new ProductData(Id.generate(), Money.ZERO, "Ejżur,Ażure", STANDARD, new Date());
     }
@@ -37,37 +51,27 @@ public class BookKeeperTest {
 
     @Test
     public void shouldReturnInvoiceWithSinglePosition() {
-        InvoiceRequest invoiceRequest = new InvoiceRequest(null);
-        invoiceRequest.add(new RequestItem(getProductData(), 1, new Money(1)));
-
         when(invoiceFactoryStub.create(any())).thenReturn(new Invoice(null, null));
         when(taxPolicyStub.calculateTax(any(), any())).thenReturn(new Tax(new Money(1), null));
 
-        Invoice result = sut.issuance(invoiceRequest, taxPolicyStub);
+        Invoice result = sut.issuance(getInvoiceRequest(getProductData()), taxPolicyStub);
         assertEquals(1, result.getItems().size());
     }
 
     @Test
     public void shouldCalculateTaxBeCalledTwice() {
-        InvoiceRequest invoiceRequest = new InvoiceRequest(null);
-
-        invoiceRequest.add(new RequestItem(getProductData(), 1, new Money(1)));
-        invoiceRequest.add(new RequestItem(getProductData(), 1, new Money(1)));
-
         when(invoiceFactoryStub.create(any())).thenReturn(new Invoice(null, null));
         when(taxPolicyStub.calculateTax(any(), any())).thenReturn(new Tax(new Money(1), null));
 
-        sut.issuance(invoiceRequest, taxPolicyStub);
+        sut.issuance(getInvoiceRequest(getProductData(), getProductData()), taxPolicyStub);
 
         verify(taxPolicyStub, times(2)).calculateTax(any(), any());
     }
 
     @Test
     public void shouldReturnEmptyInvoice() {
-        InvoiceRequest invoiceRequest = new InvoiceRequest(new ClientData(Id.generate(), "nowak"));
-
         when(invoiceFactoryStub.create(any())).thenReturn(new Invoice(null, null));
-        Invoice result = sut.issuance(invoiceRequest, taxPolicyStub);
+        Invoice result = sut.issuance(getInvoiceRequest(), taxPolicyStub);
 
         assertEquals(0, result.getItems().size());
         assertEquals(Money.ZERO, result.getGros());
@@ -78,7 +82,7 @@ public class BookKeeperTest {
     public void shouldReturnProperClientData() {
         ClientData expectedClientData = new ClientData(Id.generate(), "nowak");
 
-        InvoiceRequest invoiceRequest = new InvoiceRequest(expectedClientData);
+        InvoiceRequest invoiceRequest = getInvoiceRequest(expectedClientData);
 
         when(invoiceFactoryStub.create(any())).thenCallRealMethod();
         Invoice result = sut.issuance(invoiceRequest, taxPolicyStub);
@@ -89,21 +93,16 @@ public class BookKeeperTest {
 
     @Test
     public void shouldNotCallTaxPolicyOnEmptyInvoiceRequest() {
-        InvoiceRequest invoiceRequest = new InvoiceRequest(new ClientData(Id.generate(), "nowak"));
-
         when(invoiceFactoryStub.create(any())).thenCallRealMethod();
 
-        sut.issuance(invoiceRequest, taxPolicyStub);
+        sut.issuance(getInvoiceRequest(), taxPolicyStub);
 
         verify(taxPolicyStub, times(0)).calculateTax(any(), any());
     }
 
     @Test
     public void shouldInvoiceFactoryCreateOneInvoice() {
-        InvoiceRequest invoiceRequest = new InvoiceRequest(new ClientData(Id.generate(), "nowak"));
-
-        invoiceRequest.add(new RequestItem(getProductData(), 10, new Money(100)));
-        invoiceRequest.add(new RequestItem(getProductData(), 14, new Money(10)));
+        InvoiceRequest invoiceRequest = getInvoiceRequest(getProductData(), getProductData());
 
         when(invoiceFactoryStub.create(any())).thenCallRealMethod();
         when(taxPolicyStub.calculateTax(any(), any())).thenReturn(new Tax(Money.ZERO, "test"));
