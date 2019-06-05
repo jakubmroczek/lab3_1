@@ -40,10 +40,9 @@ public class AddProductCommandHandlerTest {
     public ClientRepository clientRepository;
 
     @Mock
-    public SystemContext systemContext;
-
-    @Mock
     public Reservation reservation;
+
+    AddProductCommandHandler sut;
 
     public Product getProduct() {
         Product result = new Product(Id.generate(), Money.ZERO, "Cudzesy", ProductType.STANDARD);
@@ -51,16 +50,17 @@ public class AddProductCommandHandlerTest {
         return result;
     }
 
-    public AddProductCommandHandler sut;
+    public SystemContext getSystemContext() {
+        return new SystemContext();
+    }
 
     @Before
     public void setUp() {
-        sut = new AddProductCommandHandler(reservationRepository,productRepository , suggestionService, clientRepository, systemContext);
+        sut = new AddProductCommandHandler(reservationRepository,productRepository , suggestionService, clientRepository, getSystemContext());
 
         when(productRepository.load(any())).thenReturn(getProduct());
         when(clientRepository.load(any())).thenReturn(new Client());
         when(reservationRepository.load(any())).thenReturn(reservation);
-        when(systemContext.getSystemUser()).thenCallRealMethod();
     }
 
     @Test
