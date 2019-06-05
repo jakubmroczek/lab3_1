@@ -10,9 +10,12 @@ import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
+import java.util.Date;
+
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
+import static pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType.STANDARD;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BookKeeperTest {
@@ -20,6 +23,10 @@ public class BookKeeperTest {
     private InvoiceFactory invoiceFactoryStub;
     private TaxPolicy taxPolicyStub;
     private BookKeeper sut;
+
+    private ProductData getProductData() {
+        return new ProductData(Id.generate(), Money.ZERO, "Ejżur,Ażure", STANDARD, new Date());
+    }
 
     @Before
     public void setUp() {
@@ -31,10 +38,8 @@ public class BookKeeperTest {
     @Test
     public void shouldReturnInvoiceWithSinglePosition() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(null);
-        ProductData productDataStub = mock(ProductData.class);
-        invoiceRequest.add(new RequestItem(productDataStub, 1, new Money(1)));
+        invoiceRequest.add(new RequestItem(getProductData(), 1, new Money(1)));
 
-        when(productDataStub.getType()).thenReturn(ProductType.STANDARD);
         when(invoiceFactoryStub.create(any())).thenReturn(new Invoice(null, null));
         when(taxPolicyStub.calculateTax(any(), any())).thenReturn(new Tax(new Money(1), null));
 
@@ -45,11 +50,10 @@ public class BookKeeperTest {
     @Test
     public void shouldCalculateTaxBeCalledTwice() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(null);
-        ProductData productDataStub = mock(ProductData.class);
-        invoiceRequest.add(new RequestItem(productDataStub, 1, new Money(1)));
-        invoiceRequest.add(new RequestItem(productDataStub, 1, new Money(1)));
 
-        when(productDataStub.getType()).thenReturn(ProductType.STANDARD);
+        invoiceRequest.add(new RequestItem(getProductData(), 1, new Money(1)));
+        invoiceRequest.add(new RequestItem(getProductData(), 1, new Money(1)));
+
         when(invoiceFactoryStub.create(any())).thenReturn(new Invoice(null, null));
         when(taxPolicyStub.calculateTax(any(), any())).thenReturn(new Tax(new Money(1), null));
 
@@ -97,11 +101,9 @@ public class BookKeeperTest {
     @Test
     public void shouldInvoiceFactoryCreateOneInvoice() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(new ClientData(Id.generate(), "nowak"));
-        ProductData productData = mock(ProductData.class);
 
-        when(productData.getType()).thenReturn(ProductType.DRUG);
-        invoiceRequest.add(new RequestItem(productData, 10, new Money(100)));
-        invoiceRequest.add(new RequestItem(productData, 14, new Money(10)));
+        invoiceRequest.add(new RequestItem(getProductData(), 10, new Money(100)));
+        invoiceRequest.add(new RequestItem(getProductData(), 14, new Money(10)));
 
         when(invoiceFactoryStub.create(any())).thenCallRealMethod();
         when(taxPolicyStub.calculateTax(any(), any())).thenReturn(new Tax(Money.ZERO, "test"));

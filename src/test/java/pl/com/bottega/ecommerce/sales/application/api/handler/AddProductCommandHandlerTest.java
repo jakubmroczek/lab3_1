@@ -42,15 +42,15 @@ public class AddProductCommandHandlerTest {
     @Mock
     public Reservation reservation;
 
-    AddProductCommandHandler sut;
+    private AddProductCommandHandler sut;
 
-    public Product getProduct() {
+    private Product getProduct() {
         Product result = new Product(Id.generate(), Money.ZERO, "Cudzesy", ProductType.STANDARD);
         result.markAsRemoved();
         return result;
     }
 
-    public SystemContext getSystemContext() {
+    private SystemContext getSystemContext() {
         return new SystemContext();
     }
 
